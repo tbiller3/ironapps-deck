@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRONVAULT — AppFactory Command Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Michroma&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --onyx:#08090c; --gunmetal:#141a23; --gunmetal-2:#1b2330;
+  --brass:#d9a441; --brass-bright:#f3c969;
+  --steel:#9db4c4; --steel-dim:#5d6d7d; --ivory:#eef2f6;
+  --kelp:#3f8e7e; --rust:#c4694f;
+  --line:rgba(157,180,196,.14); --brass-line:rgba(217,164,65,.35);
+  --tick-a:#101319; --tick-b:#0a0c10; --tick-c:#0c0e13; --tick-d:#08090c;
+  --shadow:rgba(0,0,0,.55);
+  --sea:#0d1726; --sea-2:#15233a; --contour:rgba(157,180,196,.22);
+  --wreck-ink:#c7d3dd; --beam-on:1;
+}
+[data-theme="light"]{
+  --onyx:#ece4d2; --gunmetal:#f4eee0; --gunmetal-2:#faf6ea;
+  --brass:#9a6d1c; --brass-bright:#7c5510;
+  --steel:#4c5a66; --steel-dim:#7e8a94; --ivory:#232a31;
+  --kelp:#2e7263; --rust:#a84e35;
+  --line:rgba(60,72,84,.18); --brass-line:rgba(154,109,28,.45);
+  --tick-a:#f4eee0; --tick-b:#ece4d2; --tick-c:#efe8d8; --tick-d:#e8dfcc;
+  --shadow:rgba(90,75,40,.25);
+  --sea:#dfeae6; --sea-2:#cfe0da; --contour:rgba(76,90,102,.3);
+  --wreck-ink:#33404a; --beam-on:0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--onyx);color:var(--ivory);
+  font-family:'Newsreader',Georgia,serif;font-size:17px;line-height:1.55;min-height:100%;
+  transition:background .4s ease,color .4s ease;
+  background-image:radial-gradient(1100px 520px at 75% -8%, rgba(217,164,65,.05), transparent 62%),
+    radial-gradient(900px 620px at 8% 108%, rgba(29,48,80,.28), transparent 60%)}
+[data-theme="light"] body{background-image:
+  radial-gradient(1100px 520px at 75% -8%, rgba(154,109,28,.07), transparent 62%),
+  radial-gradient(900px 620px at 8% 108%, rgba(120,105,70,.12), transparent 60%)}
+a{color:var(--brass-bright);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:2px}
+
+/* ============ TICKERS ============ */
+.tickers{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--brass-line);box-shadow:0 6px 24px var(--shadow)}
+.ticker{display:flex;align-items:stretch;overflow:hidden;white-space:nowrap}
+.ticker--now{background:linear-gradient(180deg,var(--tick-a),var(--tick-b));border-bottom:1px solid var(--line)}
+.ticker--next{background:linear-gradient(180deg,var(--tick-c),var(--tick-d))}
+.ticker__tag{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:9px 16px 9px 18px;
+  font-family:'Michroma',sans-serif;font-size:9px;letter-spacing:.32em;
+  border-right:1px solid var(--brass-line);position:relative;z-index:2}
+.ticker--now .ticker__tag{color:var(--brass-bright);background:var(--tick-a)}
+.ticker--next .ticker__tag{color:var(--steel);background:var(--tick-c)}
+.ticker__lamp{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+.ticker--now .ticker__lamp{background:var(--brass-bright);box-shadow:0 0 8px var(--brass);animation:lamp 2.2s ease-in-out infinite}
+.ticker--next .ticker__lamp{background:var(--steel-dim)}
+@keyframes lamp{0%,100%{opacity:1}50%{opacity:.35}}
+.ticker--now .ticker__track{display:flex;align-items:center;animation:scroll 42s linear infinite}
+.ticker--next .ticker__track{display:flex;align-items:center;animation:scroll 96s linear infinite}
+.ticker:hover .ticker__track{animation-play-state:paused}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker__set{display:flex;align-items:center;padding:9px 0;flex:0 0 auto}
+.ticker__item{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.02em;padding:0 14px;color:var(--steel)}
+.ticker--now .ticker__item strong{color:var(--brass-bright);font-weight:500}
+.ticker--next .ticker__item strong{color:var(--ivory);font-weight:500}
+.ticker__sep{color:var(--brass);opacity:.55;font-size:10px}
+@media (prefers-reduced-motion:reduce){
+  .ticker__track{animation:none !important}.ticker{overflow-x:auto}
+  .ticker--now .ticker__lamp{animation:none}
+  .beam-group,.wheel-spin{animation:none !important}
+}
+
+/* ============ HELM ============ */
+.helm{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:10px}
+.helm__btn{display:flex;align-items:center;gap:9px;
+  background:linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal));
+  border:1px solid var(--brass-line);color:var(--ivory);border-radius:999px;padding:10px 16px;cursor:pointer;
+  font-family:'Michroma',sans-serif;font-size:9px;letter-spacing:.28em;
+  box-shadow:0 8px 24px var(--shadow);transition:transform .2s ease,border-color .2s ease}
+.helm__btn:hover{transform:translateY(-2px);border-color:var(--brass)}
+.helm__glyph{font-size:13px;line-height:1;color:var(--brass-bright);font-family:'Newsreader',serif}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+header.masthead{padding:64px 0 40px;position:relative}
+.crest{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap}
+.wordmark{font-family:'Michroma',sans-serif;font-size:clamp(22px,4vw,34px);letter-spacing:.42em;color:var(--ivory);
+  text-shadow:0 0 26px rgba(217,164,65,.22)}
+[data-theme="light"] .wordmark{text-shadow:none}
+.wordmark em{font-style:normal;color:var(--brass-bright)}
+.masthead__sub{font-family:'Fraunces',serif;font-weight:300;font-style:italic;
+  font-size:clamp(19px,2.6vw,25px);color:var(--steel);margin-top:18px;max-width:680px;line-height:1.4}
+.masthead__rule{display:flex;align-items:center;gap:14px;margin-top:28px}
+.masthead__rule .bar{height:1px;flex:1;background:linear-gradient(90deg,var(--brass-line),transparent)}
+.masthead__rule .pip{width:7px;height:7px;border:1px solid var(--brass);transform:rotate(45deg);flex:0 0 auto}
+.coords{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--steel-dim)}
+.sect{padding:40px 0 10px}
+.sect__eyebrow{font-family:'Michroma',sans-serif;font-size:10px;letter-spacing:.4em;color:var(--brass);margin-bottom:12px}
+.sect__title{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(26px,3.4vw,38px)}
+.sect__note{color:var(--steel);font-size:16px;margin-top:8px;max-width:640px}
+.view{display:none}.view.is-active{display:block}
+
+/* ============ DECK ============ */
+.chart{margin:38px 0 10px;position:relative}
+.tier{position:relative;padding:0 0 46px}
+.tier__label{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.tier__rank{font-family:'Michroma',sans-serif;font-size:9px;letter-spacing:.34em;color:var(--steel-dim)}
+.tier__label .bar{height:1px;flex:1;background:var(--line)}
+.tier__depth{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel-dim);letter-spacing:.15em}
+.tier:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:8px;width:1px;height:30px;
+  background:linear-gradient(180deg,var(--brass-line),transparent)}
+.tier__row{display:grid;gap:14px}
+.tier--1 .tier__row{grid-template-columns:minmax(260px,420px);justify-content:center}
+.tier--2 .tier__row{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tier--3 .tier__row{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.tier--4 .tier__row{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.node{background:linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal));border:1px solid var(--line);
+  border-radius:10px;padding:16px 18px 14px;position:relative;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease}
+.node:hover{border-color:var(--brass-line);transform:translateY(-2px);
+  box-shadow:0 10px 28px var(--shadow), 0 0 0 1px rgba(217,164,65,.12)}
+.node--flag{border-color:var(--brass-line);text-align:center;padding:24px 22px 20px;
+  background:linear-gradient(180deg,rgba(217,164,65,.07),transparent 55%),
+  linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal))}
+.node__head{display:flex;align-items:center;gap:12px}
+.node--flag .node__head{justify-content:center}
+.mono{flex:0 0 auto;width:38px;height:38px;border-radius:8px;display:grid;place-items:center;
+  font-family:'Michroma',sans-serif;font-size:12px;color:#0c0a05;
+  background:linear-gradient(160deg,#f3c969,#d9a441 60%,#8a6520);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 8px rgba(0,0,0,.35)}
+.mono--steel{background:linear-gradient(160deg,#c7d3dd,#8fa2b2 60%,#5d6d7d);color:#10141a}
+.node__name{font-family:'Fraunces',serif;font-weight:600;font-size:17px}
+.node--flag .node__name{font-size:24px;font-weight:400;letter-spacing:.14em;font-family:'Michroma',sans-serif}
+.node__role{color:var(--steel);font-size:14px;margin-top:8px;line-height:1.45}
+.node--flag .node__role{font-family:'Fraunces',serif;font-style:italic;font-size:15.5px}
+.status{display:flex;align-items:center;gap:7px;margin-top:12px;
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em}
+.status__dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+.status--ok{color:var(--kelp)}.status--ok .status__dot{background:var(--kelp);box-shadow:0 0 6px rgba(63,142,126,.8)}
+.status--warn{color:var(--brass-bright)}.status--warn .status__dot{background:var(--brass-bright);box-shadow:0 0 6px rgba(217,164,65,.7)}
+.status--risk{color:var(--rust)}.status--risk .status__dot{background:var(--rust);box-shadow:0 0 6px rgba(196,105,79,.8)}
+.node--flag .status{justify-content:center}
+.ledger{margin:56px 0 20px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--gunmetal)}
+.ledger__head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:16px 22px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal))}
+.ledger__title{font-family:'Michroma',sans-serif;font-size:10px;letter-spacing:.36em;color:var(--brass)}
+.ledger__tally{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--steel)}
+.ledger__tally strong{color:var(--brass-bright);font-weight:500}
+.gauge{height:6px;background:rgba(0,0,0,.35);position:relative}
+[data-theme="light"] .gauge{background:rgba(90,75,40,.18)}
+.gauge__fill{position:absolute;inset:0 auto 0 0;width:90%;
+  background:linear-gradient(90deg,#8a6520,var(--brass) 60%,var(--brass-bright));
+  box-shadow:0 0 12px rgba(217,164,65,.4)}
+.ledger__foot{padding:13px 22px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--steel-dim);letter-spacing:.04em}
+
+/* ============ WRECK CHART ============ */
+.wreck-frame{margin:40px 0 30px;border:1px solid var(--brass-line);border-radius:14px;
+  overflow:hidden;background:var(--sea);box-shadow:0 18px 50px var(--shadow);position:relative}
+.wreck-frame svg{display:block;width:100%;height:auto}
+.wreck-caption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  padding:14px 20px;border-top:1px solid var(--line);background:var(--gunmetal);
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--steel-dim);letter-spacing:.06em}
+
+/* FIX: spin in place — rotate around each element's own box, not the page origin */
+.wheel-spin{transform-box:fill-box;transform-origin:center;animation:turn 46s linear infinite}
+@keyframes turn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* FIX: single-cone beam pivoting on the lamp (left-center of the cone's box) */
+.beam-group{transform-box:fill-box;transform-origin:left center;
+  animation:sweep 10s linear infinite;opacity:var(--beam-on);transition:opacity .6s ease}
+@keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.lamp-glow{animation:lampglow 10s linear infinite;opacity:var(--beam-on)}
+@keyframes lampglow{0%,100%{opacity:calc(var(--beam-on)*.95)}50%{opacity:calc(var(--beam-on)*.55)}}
+
+/* clickable surfaces — whole group is a target, halo never steals the pointer */
+.hot{cursor:pointer;pointer-events:bounding-box;transition:filter .35s ease}
+.hot .halo{opacity:0;pointer-events:none;transition:opacity .45s ease}
+.hot:hover, .hot:focus-visible{filter:drop-shadow(0 0 14px rgba(243,201,105,.55)) drop-shadow(0 0 34px rgba(217,164,65,.3))}
+.hot:hover .halo, .hot:focus-visible .halo{opacity:1;animation:halopulse 2.4s ease-in-out infinite}
+@keyframes halopulse{0%,100%{opacity:.9}50%{opacity:.45}}
+
+/* Hundred Sail dots */
+.sail-dot{cursor:pointer;pointer-events:all}
+.sail-dot circle.core{fill:var(--steel-dim);opacity:.8;transition:fill .25s ease,opacity .25s ease}
+.sail-dot:hover circle.core{fill:var(--brass-bright);opacity:1}
+.sail-dot circle.hit{fill:transparent}
+.chart-tip{position:absolute;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s ease;
+  background:var(--gunmetal);border:1px solid var(--brass-line);border-radius:8px;
+  padding:8px 12px;max-width:260px;box-shadow:0 10px 30px var(--shadow)}
+.chart-tip.show{opacity:1}
+.chart-tip .tip-no{font-family:'Michroma',sans-serif;font-size:8px;letter-spacing:.3em;color:var(--brass);display:block;margin-bottom:3px}
+.chart-tip .tip-name{font-family:'Fraunces',serif;font-size:15px;color:var(--ivory)}
+.chart-tip .tip-role{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel);display:block;margin-top:3px;letter-spacing:.04em}
+
+/* ============ IRONFORGE ============ */
+.forge{margin:36px 0 30px;border:1px solid var(--brass-line);border-radius:14px;overflow:hidden;
+  background:var(--gunmetal);box-shadow:0 18px 50px var(--shadow)}
+.forge__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:14px 20px;border-bottom:1px solid var(--brass-line);
+  background:linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal))}
+.forge__brand{display:flex;align-items:center;gap:12px;font-family:'Michroma',sans-serif;
+  font-size:11px;letter-spacing:.34em;color:var(--brass-bright)}
+.forge__flame{width:10px;height:10px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:linear-gradient(160deg,var(--brass-bright),var(--brass));box-shadow:0 0 10px var(--brass);
+  animation:lamp 1.8s ease-in-out infinite}
+.forge__back{background:none;border:1px solid var(--line);color:var(--steel);border-radius:8px;
+  padding:8px 14px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em}
+.forge__back:hover{border-color:var(--brass);color:var(--ivory)}
+.forge__grid{display:grid;grid-template-columns:300px 1fr;min-height:520px}
+@media (max-width:820px){.forge__grid{grid-template-columns:1fr}}
+.forge__manifest{border-right:1px solid var(--line);padding:22px;background:var(--tick-c)}
+@media (max-width:820px){.forge__manifest{border-right:none;border-bottom:1px solid var(--line)}}
+.manifest__mono{width:52px;height:52px;border-radius:10px;display:grid;place-items:center;
+  font-family:'Michroma',sans-serif;font-size:15px;color:#0c0a05;
+  background:linear-gradient(160deg,#f3c969,#d9a441 60%,#8a6520);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 3px 10px rgba(0,0,0,.35);margin-bottom:14px}
+.manifest__name{font-family:'Fraunces',serif;font-weight:600;font-size:22px}
+.manifest__role{color:var(--steel);font-size:14.5px;margin-top:8px;line-height:1.5}
+.manifest__kv{margin-top:18px;display:grid;gap:10px}
+.kv{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em}
+.kv b{color:var(--steel-dim);font-weight:400}
+.kv span{color:var(--ivory);text-align:right;word-break:break-all}
+.manifest__acts{margin-top:20px;display:grid;gap:8px}
+.act{display:block;text-align:left;background:linear-gradient(180deg,var(--gunmetal-2),var(--gunmetal));
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--steel);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em}
+.act:hover{border-color:var(--brass-line);color:var(--ivory)}
+.act em{color:var(--brass-bright);font-style:normal}
+.forge__bench{display:flex;flex-direction:column;min-height:460px}
+.bench__log{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;max-height:520px}
+.msg{max-width:82%;padding:12px 16px;border-radius:12px;font-size:15.5px;line-height:1.55}
+.msg--agent{background:var(--tick-c);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:3px}
+.msg--you{background:linear-gradient(180deg,rgba(217,164,65,.16),rgba(217,164,65,.08));
+  border:1px solid var(--brass-line);align-self:flex-end;border-bottom-right-radius:3px}
+.msg--agent .who{font-family:'Michroma',sans-serif;font-size:8px;letter-spacing:.3em;color:var(--brass);display:block;margin-bottom:6px}
+.msg--dim{opacity:.75;font-style:italic}
+.bench__row{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--line);background:var(--tick-c)}
+.bench__input{flex:1;background:var(--onyx);border:1px solid var(--line);border-radius:10px;
+  color:var(--ivory);padding:12px 14px;font-family:'Newsreader',serif;font-size:15.5px}
+[data-theme="light"] .bench__input{background:var(--gunmetal-2)}
+.bench__input:focus{outline:none;border-color:var(--brass)}
+.bench__send{background:linear-gradient(160deg,var(--brass-bright),var(--brass));border:none;color:#0c0a05;
+  border-radius:10px;padding:0 20px;cursor:pointer;font-family:'Michroma',sans-serif;font-size:9px;letter-spacing:.2em}
+.bench__send:disabled{opacity:.5;cursor:wait}
+
+footer{padding:70px 0 110px;text-align:center}
+.foot-rule{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.foot-rule .bar{height:1px;flex:1;background:var(--line)}
+.foot-rule .pip{width:6px;height:6px;border:1px solid var(--brass);transform:rotate(45deg)}
+.foot-motto{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:19px;color:var(--steel)}
+.foot-mark{font-family:'Michroma',sans-serif;font-size:9px;letter-spacing:.4em;color:var(--steel-dim);margin-top:14px}
+@media (max-width:640px){
+  .tier--4 .tier__row{grid-template-columns:repeat(2,1fr)}
+  header.masthead{padding:52px 0 34px}.helm{right:12px;bottom:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= DUAL TICKERS ================= -->
+<div class="tickers" role="region" aria-label="Ecosystem tickers">
+  <div class="ticker ticker--now">
+    <div class="ticker__tag"><span class="ticker__lamp"></span>CURRENT BEARINGS</div>
+    <div class="ticker__track">
+      <div class="ticker__set">
+        <span class="ticker__item"><strong>9 of 10</strong> vessels secured on GitHub</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>Every door works</strong> — click any lit surface to board the Forge</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>The wheel</strong> turns true and <strong>the light</strong> sweeps proper</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>The Hundred Sail</strong> now answer when hailed — hover any dot</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>ECOSYSTEM_RESCUE.md</strong> ledger live and tracking</span><span class="ticker__sep">◆</span>
+      </div>
+      <div class="ticker__set" aria-hidden="true">
+        <span class="ticker__item"><strong>9 of 10</strong> vessels secured on GitHub</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>Every door works</strong> — click any lit surface to board the Forge</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>The wheel</strong> turns true and <strong>the light</strong> sweeps proper</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>The Hundred Sail</strong> now answer when hailed — hover any dot</span><span class="ticker__sep">◆</span>
+        <span class="ticker__item"><strong>ECOSYSTEM_RESCUE.md</strong> ledger live and tracking</span><span class="ticker__sep">◆</span>
+      </div>
+    </div>
+  </div>
+  <div class="ticker ticker--next">
+    <div class="ticker__tag"><span class="ticker__lamp"></span>CHARTED COURSE</div>
+    <div class="ticker__track">
+      <div class="ticker__set">
+        <span class="ticker__item"><strong>Iron Scan V2</strong> — export from Base44, last vessel off the reef</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>POSTAPP audit</strong> — measure against the 95% automation target</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>The Forge, operational</strong> — wire the agent to real repos and builds</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>The Store</strong> — this chart, monetized: try aboard free, subscribe to keep</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>nexport-ios</strong> — five signing repairs at the Rocks</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>Transfer widget</strong> — phone ⇄ PC portal on the desktop</span><span class="ticker__sep">◇</span>
+      </div>
+      <div class="ticker__set" aria-hidden="true">
+        <span class="ticker__item"><strong>Iron Scan V2</strong> — export from Base44, last vessel off the reef</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>POSTAPP audit</strong> — measure against the 95% automation target</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>The Forge, operational</strong> — wire the agent to real repos and builds</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>The Store</strong> — this chart, monetized: try aboard free, subscribe to keep</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>nexport-ios</strong> — five signing repairs at the Rocks</span><span class="ticker__sep">◇</span>
+        <span class="ticker__item"><strong>Transfer widget</strong> — phone ⇄ PC portal on the desktop</span><span class="ticker__sep">◇</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= HELM ================= -->
+<div class="helm">
+  <button class="helm__btn" id="viewToggle" aria-pressed="false">
+    <span class="helm__glyph" aria-hidden="true">⚓</span><span id="viewLabel">WRECK CHART</span>
+  </button>
+  <button class="helm__btn" id="themeToggle" aria-pressed="false">
+    <span class="helm__glyph" aria-hidden="true" id="themeGlyph">☾</span><span id="themeLabel">DAY WATCH</span>
+  </button>
+</div>
+
+<!-- ================= MASTHEAD ================= -->
+<header class="masthead">
+  <div class="wrap">
+    <div class="crest">
+      <div class="wordmark">IRON<em>VAULT</em></div>
+      <div class="coords" id="deckCoords">APPFACTORY · COMMAND DECK</div>
+    </div>
+    <p class="masthead__sub" id="deckSub">Every vessel in the fleet, charted on one deck — what's built,
+    what's shipping, and what the tide brings next.</p>
+    <div class="masthead__rule">
+      <span class="pip"></span><span class="bar"></span>
+      <span class="coords">FROM SET SAIL, ONWARD — THE OPEN SEA AWAITS</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ VIEW 1 · COMMAND DECK ============ -->
+<div class="view is-active" id="view-deck">
+  <section class="sect">
+    <div class="sect__eyebrow">THE CHART</div>
+    <h1 class="sect__title">Ecosystem, drawn to order</h1>
+    <p class="sect__note">Four ranks, top to keel — and two kinds of doors. Click a tile here and you board
+    the <em>live app</em>, as a user would. Click the same vessel on the Wreck Chart and you enter her
+    <em>repair bay</em> in the Forge, as her builder.</p>
+    <div class="chart">
+      <div class="tier tier--1">
+        <div class="tier__label"><span class="tier__rank">RANK I · THE FLAG</span><span class="bar"></span><span class="tier__depth">— 0 FATHOMS</span></div>
+        <div class="tier__row">
+          <div class="node node--flag">
+            <div class="node__head"><div class="node__name">IRONVAULT</div></div>
+            <p class="node__role">The company. Every keel below is laid in its name.</p>
+            <div class="status status--ok"><span class="status__dot"></span>UNDER WAY</div>
+          </div>
+        </div>
+      </div>
+      <div class="tier tier--2">
+        <div class="tier__label"><span class="tier__rank">RANK II · THE FOUNDRY</span><span class="bar"></span><span class="tier__depth">— 10 FATHOMS</span></div>
+        <div class="tier__row">
+          <div class="node"><div class="node__head"><div class="mono">MB</div><div class="node__name">APP MASTERBUILDER</div></div>
+            <p class="node__role">Ten-agent build pipeline — the master shipwright.</p>
+            <div class="status status--ok"><span class="status__dot"></span>PUSHED · master-builder-pipeline</div></div>
+          <div class="node"><div class="node__head"><div class="mono">AF</div><div class="node__name">AppForge</div></div>
+            <p class="node__role">Seven-agent app factory — hulls in series.</p>
+            <div class="status status--ok"><span class="status__dot"></span>SYNCED · appfactory</div></div>
+          <div class="node"><div class="node__head"><div class="mono">SM</div><div class="node__name">SONA Masterbuilder</div></div>
+            <p class="node__role">Agency-grade builder for the SONA line.</p>
+            <div class="status status--ok"><span class="status__dot"></span>COMMITTED · sona-masterbuilder</div></div>
+          <div class="node"><div class="node__head"><div class="mono">AL</div><div class="node__name">AppLaunch Flow</div></div>
+            <p class="node__role">Creation to App Store approval, zero manual friction.</p>
+            <div class="status status--warn"><span class="status__dot"></span>EXPORTED · verify mirror</div></div>
+        </div>
+      </div>
+      <div class="tier tier--3">
+        <div class="tier__label"><span class="tier__rank">RANK III · THE FLEET</span><span class="bar"></span><span class="tier__depth">— 20 FATHOMS</span></div>
+        <div class="tier__row">
+          <div class="node"><div class="node__head"><div class="mono">IB</div><div class="node__name">IRONBEAM</div></div>
+            <p class="node__role">Wireless file transfer, phone to PC and back.</p>
+            <div class="status status--ok"><span class="status__dot"></span>FLAGSHIP · LIVE</div></div>
+          <div class="node"><div class="node__head"><div class="mono">NX</div><div class="node__name">NEXPORT</div></div>
+            <p class="node__role">The branded fork — transfer, rechristened for market.</p>
+            <div class="status status--warn"><span class="status__dot"></span>SYNCED · signing repairs due</div></div>
+          <div class="node"><div class="node__head"><div class="mono">PA</div><div class="node__name">POSTAPP</div></div>
+            <p class="node__role">One URL in, ~175 App Store fields out. Six human touches.</p>
+            <div class="status status--warn"><span class="status__dot"></span>AUDIT PENDING · source inbound</div></div>
+          <div class="node"><div class="node__head"><div class="mono">ZK</div><div class="node__name">ZenKits.AI</div></div>
+            <p class="node__role">The kits marketplace, resting until it's ready.</p>
+            <div class="status status--ok"><span class="status__dot"></span>COMMITTED · zenkits</div></div>
+          <div class="node"><div class="node__head"><div class="mono">IS</div><div class="node__name">Iron Scan V2</div></div>
+            <p class="node__role">The scanner — last vessel still on the Base44 reef.</p>
+            <div class="status status--risk"><span class="status__dot"></span>EXPORT NEEDED · Base44 only</div></div>
+          <div class="node"><div class="node__head"><div class="mono">IV</div><div class="node__name">IronVault Desktop</div></div>
+            <p class="node__role">The vault itself, on the desk.</p>
+            <div class="status status--ok"><span class="status__dot"></span>SYNCED · ironvault-desktop</div></div>
+        </div>
+      </div>
+      <div class="tier tier--4">
+        <div class="tier__label"><span class="tier__rank">RANK IV · THE HARBOR</span><span class="bar"></span><span class="tier__depth">— 30 FATHOMS</span></div>
+        <div class="tier__row">
+          <div class="node"><div class="node__head"><div class="mono mono--steel">GH</div><div class="node__name">GitHub</div></div>
+            <p class="node__role">Home port. Every hull registered.</p></div>
+          <div class="node"><div class="node__head"><div class="mono mono--steel">B44</div><div class="node__name">Base44</div></div>
+            <p class="node__role">Drydock — builds, then exports to port.</p></div>
+          <div class="node"><div class="node__head"><div class="mono mono--steel">RN</div><div class="node__name">Render</div></div>
+            <p class="node__role">Open water — where this deck sails.</p></div>
+          <div class="node"><div class="node__head"><div class="mono mono--steel">CM</div><div class="node__name">Codemagic</div></div>
+            <p class="node__role">The rigging loft — iOS builds and signing.</p></div>
+          <div class="node"><div class="node__head"><div class="mono mono--steel">ST</div><div class="node__name">Stripe</div></div>
+            <p class="node__role">The purser — payments and products.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="ledger" aria-label="Fleet ledger">
+    <div class="ledger__head">
+      <div class="ledger__title">FLEET LEDGER</div>
+      <div class="ledger__tally"><strong>9 / 10</strong> vessels secured · <strong>1</strong> awaiting export · every door now opens</div>
+    </div>
+    <div class="gauge" role="img" aria-label="Nine of ten apps secured on GitHub"><div class="gauge__fill"></div></div>
+    <div class="ledger__foot">LAST SOUNDING · 2026-07-06 · ECOSYSTEM_RESCUE.md · all bearings true</div>
+  </section>
+</div>
+
+<!-- ============ VIEW 2 · SHIPWRECK CHART ============ -->
+<div class="view" id="view-wreck">
+  <section class="sect">
+    <div class="sect__eyebrow">THE WRECK CHART · A MAP OF DOORS</div>
+    <h1 class="sect__title">Chart of the Iron Archipelago</h1>
+    <p class="sect__note">Hover any coast or vessel and the light finds it; click, and the Forge takes it.
+    Hail the Hundred Sail — every dot answers with its name.</p>
+
+    <div class="wreck-frame">
+      <div class="chart-tip" id="chartTip">
+        <span class="tip-no" id="tipNo">No. 000</span>
+        <span class="tip-name" id="tipName">—</span>
+        <span class="tip-role" id="tipRole">—</span>
+      </div>
+      <svg viewBox="0 0 1080 1560" xmlns="http://www.w3.org/2000/svg" role="img" id="wreckSvg"
+           aria-label="Interactive chart of the Iron Archipelago — click territories and vessels to open them in the IronForge; hover archive dots for their names">
+        <defs>
+          <radialGradient id="seaGlow" cx="55%" cy="30%" r="90%">
+            <stop offset="0%" stop-color="var(--sea-2)"/><stop offset="100%" stop-color="var(--sea)"/>
+          </radialGradient>
+          <pattern id="soundings" width="95" height="75" patternUnits="userSpaceOnUse">
+            <text x="12" y="20" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--contour)" opacity=".65">12</text>
+            <text x="60" y="55" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--contour)" opacity=".5">27</text>
+          </pattern>
+          <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--brass-bright)" stop-opacity=".6"/>
+            <stop offset="55%" stop-color="var(--brass-bright)" stop-opacity=".18"/>
+            <stop offset="100%" stop-color="var(--brass-bright)" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="var(--brass-bright)" stop-opacity=".38"/>
+            <stop offset="70%" stop-color="var(--brass-bright)" stop-opacity=".1"/>
+            <stop offset="100%" stop-color="var(--brass-bright)" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="1080" height="1560" fill="url(#seaGlow)"/>
+        <rect width="1080" height="1560" fill="url(#soundings)"/>
+        <g stroke="var(--brass)" stroke-width=".5" opacity=".13">
+          <line x1="540" y1="780" x2="1080" y2="0"/><line x1="540" y1="780" x2="1080" y2="1560"/>
+          <line x1="540" y1="780" x2="0" y2="0"/><line x1="540" y1="780" x2="0" y2="1560"/>
+          <line x1="540" y1="780" x2="540" y2="0"/><line x1="540" y1="780" x2="540" y2="1560"/>
+          <line x1="540" y1="780" x2="0" y2="780"/><line x1="540" y1="780" x2="1080" y2="780"/>
+        </g>
+        <g fill="none" stroke="var(--contour)" stroke-width="1">
+          <path d="M-20 520 C 200 460, 380 560, 600 505 S 940 560, 1100 480" opacity=".7"/>
+          <path d="M-20 1020 C 220 950, 400 1060, 620 1000 S 960 1060, 1100 970" opacity=".6"/>
+          <path d="M-20 1340 C 240 1280, 440 1380, 680 1325 S 980 1380, 1100 1300" opacity=".45"/>
+        </g>
+
+        <!-- CARTOUCHE -->
+        <g transform="translate(690,40)">
+          <rect width="350" height="128" rx="6" fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <rect x="7" y="7" width="336" height="114" rx="4" fill="none" stroke="var(--brass-line)" stroke-width=".6"/>
+          <text x="175" y="36" text-anchor="middle" font-family="Michroma, sans-serif" font-size="12" letter-spacing="5" fill="var(--brass-bright)">IRON ARCHIPELAGO</text>
+          <text x="175" y="62" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="16" fill="var(--ivory)">A map of doors — click to enter</text>
+          <text x="175" y="86" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="2" fill="var(--steel)">TERRITORIES · ANCHORAGES · THE FORGE BELOW</text>
+          <text x="175" y="107" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="2" fill="var(--steel-dim)">SURVEYED MMXXVI · PLATE IV</text>
+        </g>
+
+        <!-- VAULT WHEEL — now spinning in place -->
+        <g transform="translate(120,120)">
+          <circle r="66" fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.4"/>
+          <g class="wheel-spin">
+            <circle r="52" fill="none" stroke="var(--brass)" stroke-width="4"/>
+            <circle r="30" fill="none" stroke="var(--brass)" stroke-width="2.5"/>
+            <g stroke="var(--brass)" stroke-width="4" stroke-linecap="round">
+              <line x1="0" y1="-30" x2="0" y2="-52"/><line x1="0" y1="30" x2="0" y2="52"/>
+              <line x1="-30" y1="0" x2="-52" y2="0"/><line x1="30" y1="0" x2="52" y2="0"/>
+              <line x1="-21" y1="-21" x2="-37" y2="-37"/><line x1="21" y1="21" x2="37" y2="37"/>
+              <line x1="-21" y1="21" x2="-37" y2="37"/><line x1="21" y1="-21" x2="37" y2="-37"/>
+            </g>
+            <g fill="var(--brass-bright)">
+              <circle cx="0" cy="-60" r="5"/><circle cx="0" cy="60" r="5"/>
+              <circle cx="-60" cy="0" r="5"/><circle cx="60" cy="0" r="5"/>
+              <circle cx="-43" cy="-43" r="5"/><circle cx="43" cy="43" r="5"/>
+              <circle cx="-43" cy="43" r="5"/><circle cx="43" cy="-43" r="5"/>
+            </g>
+          </g>
+          <circle r="17" fill="var(--gunmetal-2)" stroke="var(--brass)" stroke-width="1.5"/>
+          <text y="4.5" text-anchor="middle" font-family="Michroma, sans-serif" font-size="10" fill="var(--brass-bright)">IV</text>
+          <text y="92" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="3" fill="var(--steel-dim)">THE HELM · VAULT PATTERN</text>
+        </g>
+
+        <!-- THE IRON COAST -->
+        <g class="hot" data-app="ironcoast" tabindex="0" role="button" aria-label="Open the Iron Coast in the Forge">
+          <ellipse class="halo" cx="140" cy="430" rx="240" ry="200" fill="url(#haloGrad)"/>
+          <path d="M-20 260 C 120 250, 200 300, 260 360 C 315 415, 290 480, 230 520
+                   C 168 560, 90 545, 30 590 C -5 615, -20 610, -20 610 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <text x="70" y="380" font-family="Fraunces, serif" font-style="italic" font-size="24" fill="var(--ivory)" letter-spacing="3">The Iron Coast</text>
+          <text x="72" y="402" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">HOME PORT · GITHUB</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="ironbeam" tabindex="0" role="button" aria-label="Open IRONBEAM in the Forge" transform="translate(360,330)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -18 L 11 -5 Z" fill="var(--brass-bright)"/>
+            <text x="20" y="4">IRONBEAM · flagship</text>
+          </g>
+          <g class="hot" data-app="ironvaultdesktop" tabindex="0" role="button" aria-label="Open IronVault Desktop in the Forge" transform="translate(400,410)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="18" y="4">IronVault Desktop</text>
+          </g>
+          <g class="hot" data-app="nexport" tabindex="0" role="button" aria-label="Open NEXPORT in the Forge" transform="translate(330,480)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="18" y="4">NEXPORT · bound for the Rocks</text>
+          </g>
+        </g>
+
+        <!-- FOUNDRY ISLE -->
+        <g class="hot" data-app="foundry" tabindex="0" role="button" aria-label="Open Foundry Isle in the Forge">
+          <ellipse class="halo" cx="810" cy="395" rx="200" ry="150" fill="url(#haloGrad)"/>
+          <path d="M700 300 C 780 270, 880 290, 930 350 C 975 405, 950 470, 880 495
+                   C 810 520, 730 500, 690 445 C 655 395, 655 330, 700 300 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <g transform="translate(810,335)">
+            <rect x="-5" y="0" width="10" height="18" fill="var(--brass)"/>
+            <circle cx="0" cy="-8" r="4" fill="var(--steel-dim)" opacity=".6"/>
+            <circle cx="6" cy="-16" r="3" fill="var(--steel-dim)" opacity=".4"/>
+          </g>
+          <text x="735" y="395" font-family="Fraunces, serif" font-style="italic" font-size="22" fill="var(--ivory)" letter-spacing="2">Foundry Isle</text>
+          <text x="737" y="415" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">WHERE HULLS ARE LAID</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="masterbuilder" tabindex="0" role="button" aria-label="Open APP MASTERBUILDER in the Forge" transform="translate(640,270)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="18" y="4">APP MASTERBUILDER</text>
+          </g>
+          <g class="hot" data-app="appforge" tabindex="0" role="button" aria-label="Open AppForge in the Forge" transform="translate(990,330)">
+            <circle class="halo" r="55" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="-18" y="24" text-anchor="end">AppForge</text>
+          </g>
+          <g class="hot" data-app="sona" tabindex="0" role="button" aria-label="Open SONA Masterbuilder in the Forge" transform="translate(950,520)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="-18" y="4" text-anchor="end">SONA Masterbuilder</text>
+          </g>
+          <g class="hot" data-app="applaunch" tabindex="0" role="button" aria-label="Open AppLaunch Flow in the Forge" transform="translate(650,540)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="18" y="4">AppLaunch Flow</text>
+          </g>
+        </g>
+
+        <!-- STORE APPROACHES + POSTAPP -->
+        <g class="hot" data-app="approaches" tabindex="0" role="button" aria-label="Open Store Approaches in the Forge">
+          <ellipse class="halo" cx="520" cy="725" rx="180" ry="130" fill="url(#haloGrad)"/>
+          <path d="M420 640 C 500 615, 590 630, 630 685 C 665 733, 640 795, 570 815
+                   C 500 835, 430 810, 405 755 C 385 710, 385 660, 420 640 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <text x="450" y="720" font-family="Fraunces, serif" font-style="italic" font-size="21" fill="var(--ivory)" letter-spacing="2">Store Approaches</text>
+          <text x="452" y="740" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">THE SUBMISSION CHANNEL · 175 MARKS</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="postapp" tabindex="0" role="button" aria-label="Open POSTAPP in the Forge" transform="translate(320,640)">
+            <circle class="halo" r="65" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -18 L 11 -5 Z" fill="var(--brass-bright)"/>
+            <text x="20" y="4">POSTAPP · bound for audit</text>
+          </g>
+        </g>
+
+        <!-- BASE44 REEF + IRON SCAN V2 -->
+        <g class="hot" data-app="ironscan" tabindex="0" role="button" aria-label="Open Iron Scan V2 in the Forge" font-family="IBM Plex Mono, monospace" letter-spacing="1">
+          <circle class="halo" cx="930" cy="690" r="85" fill="url(#haloGrad)"/>
+          <path d="M880 660 q 18 -14 36 0 q 18 14 36 0" fill="none" stroke="var(--rust)" stroke-width="1.4"/>
+          <path d="M885 675 q 16 -12 32 0 q 16 12 32 0" fill="none" stroke="var(--rust)" stroke-width="1" opacity=".6"/>
+          <text x="875" y="648" fill="var(--rust)" font-size="9" letter-spacing="2">THE BASE44 REEF</text>
+          <g transform="translate(920,700) rotate(-14)">
+            <path d="M-16 0 Q 0 10 16 0 L 11 -5 L -11 -5 Z" fill="var(--rust)"/>
+            <line x1="2" y1="-5" x2="10" y2="-22" stroke="var(--rust)" stroke-width="1.6"/>
+          </g>
+          <text x="885" y="732" fill="var(--rust)" font-size="9.5">IRON SCAN V2 · aground</text>
+        </g>
+
+        <!-- LIGHTHOUSE ROCKS — true sweeping beam -->
+        <g class="hot" data-app="rocks" tabindex="0" role="button" aria-label="Open the Lighthouse Rocks repair queue in the Forge">
+          <ellipse class="halo" cx="210" cy="940" rx="200" ry="150" fill="url(#haloGrad)"/>
+          <g fill="var(--gunmetal-2)" stroke="var(--brass-line)" stroke-width="1">
+            <path d="M150 900 L 190 860 L 240 885 L 270 940 L 225 975 L 165 960 Z"/>
+            <path d="M95 960 L 130 930 L 165 955 L 150 1000 L 105 995 Z" opacity=".9"/>
+            <path d="M255 985 L 295 955 L 330 985 L 305 1020 L 262 1015 Z" opacity=".85"/>
+          </g>
+          <!-- one long soft cone, apex on the lamp, sweeping full circle -->
+          <g transform="translate(205,808)">
+            <g class="beam-group">
+              <polygon points="0,0 240,-34 240,34" fill="url(#beamGrad)"/>
+            </g>
+            <circle r="7" fill="var(--brass-bright)" class="lamp-glow"/>
+          </g>
+          <g transform="translate(205,838)">
+            <path d="M-10 34 L -6 -20 L 6 -20 L 10 34 Z" fill="var(--brass)"/>
+            <g stroke="var(--onyx)" stroke-width="2.4" opacity=".55">
+              <line x1="-7.4" y1="8" x2="7.4" y2="8"/><line x1="-6.6" y1="-6" x2="6.6" y2="-6"/>
+            </g>
+            <rect x="-7" y="-30" width="14" height="10" rx="1.5" fill="var(--gunmetal-2)" stroke="var(--brass-bright)" stroke-width="1"/>
+            <path d="M-9 -30 L 0 -40 L 9 -30 Z" fill="var(--brass-bright)"/>
+          </g>
+          <text x="108" y="1052" font-family="Fraunces, serif" font-style="italic" font-size="21" fill="var(--ivory)" letter-spacing="2">The Lighthouse Rocks</text>
+          <text x="110" y="1072" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">REPAIR ANCHORAGE</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="nexportios" tabindex="0" role="button" aria-label="Open nexport-ios repairs in the Forge" transform="translate(360,905)">
+            <circle class="halo" r="55" fill="url(#haloGrad)"/>
+            <g transform="rotate(-6)">
+              <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)" opacity=".85"/>
+              <line x1="0" y1="0" x2="0" y2="-18" stroke="var(--wreck-ink)" stroke-width="1.4"/>
+              <path d="M0 -18 L 9 -13 L 0 -8" fill="none" stroke="var(--rust)" stroke-width="1.4"/>
+            </g>
+            <text x="25" y="3">nexport-ios · five signing repairs</text>
+          </g>
+          <g class="hot" data-app="ivbackup" tabindex="0" role="button" aria-label="Open ironvault-backup repairs in the Forge" transform="translate(390,965)">
+            <circle class="halo" r="55" fill="url(#haloGrad)"/>
+            <g transform="rotate(4)">
+              <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)" opacity=".85"/>
+              <line x1="0" y1="0" x2="0" y2="-18" stroke="var(--wreck-ink)" stroke-width="1.4"/>
+              <path d="M0 -18 L 9 -13 L 0 -8" fill="none" stroke="var(--rust)" stroke-width="1.4"/>
+            </g>
+            <text x="25" y="3">ironvault-backup · watch-bell silent</text>
+          </g>
+        </g>
+
+        <!-- WHISPER SHOALS -->
+        <g class="hot" data-app="shoals" tabindex="0" role="button" aria-label="Open Whisper Shoals in the Forge">
+          <ellipse class="halo" cx="765" cy="1185" rx="210" ry="150" fill="url(#haloGrad)"/>
+          <path d="M640 1090 C 730 1060, 840 1080, 890 1140 C 935 1195, 905 1265, 830 1290
+                   C 755 1315, 665 1290, 630 1230 C 600 1178, 600 1120, 640 1090 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <g fill="none" stroke="var(--steel)" stroke-width="1" opacity=".45">
+            <path d="M905 1180 q 14 -10 28 0"/><path d="M912 1198 q 20 -14 40 0"/>
+            <path d="M920 1218 q 26 -18 52 0"/>
+          </g>
+          <text x="672" y="1175" font-family="Fraunces, serif" font-style="italic" font-size="22" fill="var(--ivory)" letter-spacing="2">Whisper Shoals</text>
+          <text x="674" y="1196" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">SOUND WATERS · LISTEN CLOSE</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="whisperlift" tabindex="0" role="button" aria-label="Open Whisper Lift in the Forge" transform="translate(560,1090)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="-18" y="4" text-anchor="end">Whisper Lift · browser cutter</text>
+          </g>
+          <g class="hot" data-app="whisperpro" tabindex="0" role="button" aria-label="Open Whisper Lift Pro in the Forge" transform="translate(960,1120)">
+            <circle class="halo" r="60" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -18 L 11 -5 Z" fill="var(--brass-bright)"/>
+            <text x="-20" y="24" text-anchor="end">Whisper Lift Pro</text>
+          </g>
+        </g>
+
+        <!-- EXCHANGE ISLE + LIAISON PRO -->
+        <g class="hot" data-app="exchange" tabindex="0" role="button" aria-label="Open Exchange Isle in the Forge">
+          <ellipse class="halo" cx="240" cy="1275" rx="200" ry="150" fill="url(#haloGrad)"/>
+          <path d="M130 1180 C 220 1150, 320 1170, 365 1230 C 405 1283, 375 1350, 300 1372
+                   C 228 1393, 145 1370, 115 1312 C 90 1263, 92 1210, 130 1180 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <g transform="translate(240,1240)" stroke="var(--brass)" stroke-width="1.6" fill="none">
+            <line x1="0" y1="-14" x2="0" y2="10"/><line x1="-16" y1="-8" x2="16" y2="-8"/>
+            <path d="M-16 -8 l -6 12 h 12 Z"/><path d="M16 -8 l -6 12 h 12 Z"/>
+          </g>
+          <text x="155" y="1300" font-family="Fraunces, serif" font-style="italic" font-size="22" fill="var(--ivory)" letter-spacing="2">Exchange Isle</text>
+          <text x="157" y="1321" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">FAIR TRADE WATERS · TRUST 0–1000</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="liaison" tabindex="0" role="button" aria-label="Open Liaison Pro in the Forge" transform="translate(450,1210)">
+            <circle class="halo" r="65" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 14 14 6 L 10 0 L -10 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -18 L 11 -5 Z" fill="var(--brass-bright)"/>
+            <text x="20" y="4">Liaison Pro · the Freelance Exchange</text>
+          </g>
+        </g>
+
+        <!-- ALLIED CONVOY -->
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <text x="540" y="1415" text-anchor="middle" font-family="Michroma, sans-serif" font-size="9" letter-spacing="4" fill="var(--steel-dim)">THE ALLIED CONVOY · KEY HOLDERS SAILING WITH THE FLEET</text>
+          <g class="hot" data-app="claude" tabindex="0" role="button" aria-label="Open the Claude escort in the Forge" transform="translate(240,1460)">
+            <circle class="halo" r="55" fill="url(#haloGrad)"/>
+            <path d="M-16 7 Q 0 16 16 7 L 12 0 L -12 0 Z" fill="var(--brass-bright)"/>
+            <path d="M0 0 L 0 -20 L 13 -6 Z" fill="var(--brass)"/>
+            <text x="0" y="24" text-anchor="middle">Claude · the shipwright's mate</text>
+          </g>
+          <g class="hot" data-app="apple" tabindex="0" role="button" aria-label="Open the Apple harbor entry in the Forge" transform="translate(460,1470)">
+            <circle class="halo" r="50" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 13 14 6 L 10 0 L -10 0 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.4"/>
+            <path d="M0 0 L 0 -17 L 10 -5 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.2"/>
+            <text x="0" y="24" text-anchor="middle">Apple · the harbormaster</text>
+          </g>
+          <g class="hot" data-app="stripe" tabindex="0" role="button" aria-label="Open the Stripe purser entry in the Forge" transform="translate(660,1460)">
+            <circle class="halo" r="50" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 13 14 6 L 10 0 L -10 0 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.4"/>
+            <path d="M0 0 L 0 -17 L 10 -5 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.2"/>
+            <text x="0" y="24" text-anchor="middle">Stripe · the purser</text>
+          </g>
+          <g class="hot" data-app="codemagic" tabindex="0" role="button" aria-label="Open the Codemagic rigging entry in the Forge" transform="translate(860,1470)">
+            <circle class="halo" r="50" fill="url(#haloGrad)"/>
+            <path d="M-14 6 Q 0 13 14 6 L 10 0 L -10 0 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.4"/>
+            <path d="M0 0 L 0 -17 L 10 -5 Z" fill="none" stroke="var(--wreck-ink)" stroke-width="1.2"/>
+            <text x="0" y="24" text-anchor="middle">Codemagic · the rigger</text>
+          </g>
+        </g>
+
+        <!-- COMPASS -->
+        <g transform="translate(945,930)">
+          <circle r="46" fill="none" stroke="var(--brass-line)" stroke-width="1"/>
+          <circle r="35" fill="none" stroke="var(--brass-line)" stroke-width=".5"/>
+          <g fill="var(--brass)">
+            <path d="M0 -44 L 5 0 L 0 7 L -5 0 Z"/>
+            <path d="M0 44 L 5 0 L 0 -7 L -5 0 Z" opacity=".55"/>
+            <path d="M-44 0 L 0 5 L 7 0 L 0 -5 Z" opacity=".55"/>
+            <path d="M44 0 L 0 5 L -7 0 L 0 -5 Z" opacity=".55"/>
+          </g>
+          <text y="-52" text-anchor="middle" font-family="Michroma, sans-serif" font-size="10" fill="var(--brass-bright)">N</text>
+        </g>
+
+        <!-- THE HUNDRED SAIL — generated by script, hover to hail -->
+        <g id="hundredSail"></g>
+        <text x="540" y="1548" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" letter-spacing="3" fill="var(--steel-dim)">· THE HUNDRED SAIL · hover any dot to hail it by name ·</text>
+      </svg>
+
+      <div class="wreck-caption">
+        <span>PLATE IV · A MAP OF DOORS · EVERY SURFACE ANSWERS</span>
+        <span>THE FORGE WAITS BELOW DECK</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ VIEW 3 · THE IRONFORGE ============ -->
+<div class="view" id="view-forge">
+  <section class="sect">
+    <div class="sect__eyebrow">THE IRONFORGE · BUILDER SUITE</div>
+    <h1 class="sect__title">Below deck, where creations continue</h1>
+    <p class="sect__note">The vessel you chose is on the bench. The builder agent stands ready —
+    ask it anything about this craft's next refinement.</p>
+
+    <div class="forge">
+      <div class="forge__bar">
+        <div class="forge__brand"><span class="forge__flame"></span>IRONFORGE · DRYDOCK BENCH</div>
+        <button class="forge__back" id="forgeBack">← BACK TO THE CHART</button>
+      </div>
+      <div class="forge__grid">
+        <aside class="forge__manifest">
+          <div class="manifest__mono" id="fMono">IV</div>
+          <div class="manifest__name" id="fName">—</div>
+          <p class="manifest__role" id="fRole">—</p>
+          <div class="manifest__kv">
+            <div class="kv"><b>TERRITORY</b><span id="fTerr">—</span></div>
+            <div class="kv"><b>STATUS</b><span id="fStatus">—</span></div>
+            <div class="kv"><b>MOORING</b><span id="fRepo">—</span></div>
+          </div>
+          <div class="manifest__acts">
+            <a class="act" id="fLive" target="_blank" rel="noopener" hidden><em>⚓</em> Board the live app</a>
+            <a class="act" id="fCode" target="_blank" rel="noopener" hidden><em>⚒</em> Open the drydock (repo / editor)</a>
+            <button class="act" data-say="Give me a status read on this vessel — what is done, what is pending, and the single best next step."><em>▸</em> Status read</button>
+            <button class="act" data-say="Draft a refinement plan for this app: three improvements ranked by impact, each one buildable in a day."><em>▸</em> Refinement plan</button>
+            <button class="act" data-say="Write the one-paragraph story of this app for the marketing page, in the voice of this nautical chart."><em>▸</em> Tell its story</button>
+          </div>
+        </aside>
+        <div class="forge__bench">
+          <div class="bench__log" id="benchLog"></div>
+          <div class="bench__row">
+            <input class="bench__input" id="benchInput" type="text"
+                   placeholder="Speak to the builder agent…" aria-label="Message the builder agent">
+            <button class="bench__send" id="benchSend">SEND</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+  <footer>
+    <div class="foot-rule"><span class="bar"></span><span class="pip"></span><span class="bar"></span></div>
+    <p class="foot-motto">From set sail, onward — the open sea awaits.</p>
+    <div class="foot-mark">IRONVAULT · APPFACTORY · MMXXVI</div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var root = document.documentElement;
+
+  /* ---------- fleet registry (Forge manifests) ---------- */
+  var FLEET = {
+    ironcoast:{mono:"GH",name:"The Iron Coast",role:"Home port. GitHub — every hull in the ecosystem registered and moored here.",terr:"Home Port",status:"ALL HULLS REGISTERED",repo:"github.com/tbiller3"},
+    ironbeam:{mono:"IB",name:"IRONBEAM",role:"Wireless file transfer between phone and PC. The flagship — live, encrypted, and the line the fleet was founded on.",terr:"The Iron Coast",status:"FLAGSHIP · LIVE",repo:"tbiller3/ironbeam"},
+    ironvaultdesktop:{mono:"IV",name:"IronVault Desktop",role:"The vault itself on the desk — the company's namesake craft.",terr:"The Iron Coast",status:"SYNCED",repo:"tbiller3/ironvault-desktop"},
+    nexport:{mono:"NX",name:"NEXPORT",role:"The branded fork of the transfer line, rechristened for market. Windows app and iOS shell complete; five signing repairs charted at the Rocks.",terr:"Iron Coast → Lighthouse Rocks",status:"SYNCED · SIGNING REPAIRS DUE",repo:"tbiller3/nexport + nexport-ios"},
+    nexportios:{mono:"NI",name:"nexport-ios",role:"The iOS rigging of NEXPORT — five signing workflows torn: cert clean, cert profile, p12 password, TestFlight, what-to-test. One root cause suspected: missing or expired signing secrets.",terr:"The Lighthouse Rocks",status:"FIVE REPAIRS QUEUED",repo:"tbiller3/nexport-ios"},
+    ivbackup:{mono:"VB",name:"ironvault-backup",role:"The watch-bell of the fleet — its App Store review-status check has gone silent four runs straight.",terr:"The Lighthouse Rocks",status:"WATCH-BELL SILENT",repo:"tbiller3/ironvault-backup"},
+    foundry:{mono:"FY",name:"Foundry Isle",role:"Where hulls are laid — the island of builder tools that make every other vessel.",terr:"Territory II",status:"FIRES LIT",repo:"four builders moored"},
+    masterbuilder:{mono:"MB",name:"APP MASTERBUILDER",role:"The ten-agent build pipeline — the master shipwright, recovered from the Replit export and pushed fresh.",terr:"Foundry Isle",status:"PUSHED",repo:"tbiller3/master-builder-pipeline"},
+    appforge:{mono:"AF",name:"AppForge",role:"Seven-agent app factory — hulls in series, the production line of the isle.",terr:"Foundry Isle",status:"SYNCED",repo:"tbiller3/appfactory"},
+    sona:{mono:"SM",name:"SONA Masterbuilder",role:"Agency-grade builder for the SONA line of craft.",terr:"Foundry Isle",status:"COMMITTED",repo:"tbiller3/sona-masterbuilder"},
+    applaunch:{mono:"AL",name:"AppLaunch Flow",role:"Creation to App Store approval with zero manual friction. Freshly exported from Base44 drydock.",terr:"Foundry Isle",status:"EXPORTED · VERIFY MIRROR",repo:"base44dev/auto-launch-ship"},
+    approaches:{mono:"SA",name:"Store Approaches",role:"The submission channel — 175 marks between a finished hull and the open App Store sea.",terr:"Territory III",status:"CHANNEL OPEN",repo:"the audit will chart it"},
+    postapp:{mono:"PA",name:"POSTAPP",role:"One URL in, ~175 App Store Connect fields out, six human touches. Bound for the great audit against the 95% automation mark.",terr:"Store Approaches",status:"AUDIT PENDING · SOURCE INBOUND",repo:"tbiller3/postapp-"},
+    ironscan:{mono:"IS",name:"Iron Scan V2",role:"The scanner — the last vessel of the ten, aground on the Base44 Reef and awaiting its salvage export.",terr:"The Base44 Reef",status:"AGROUND · EXPORT NEEDED",repo:"— none yet · Base44 only"},
+    zenkits:{mono:"ZK",name:"ZenKits.AI",role:"The kits marketplace — 47 kits ashore, resting until it's ready to trade again.",terr:"The Fleet",status:"COMMITTED",repo:"tbiller3/zenkits"},
+    rocks:{mono:"LR",name:"The Lighthouse Rocks",role:"The repair anchorage. The light sweeps the wounded so none are forgotten.",terr:"Repair Anchorage",status:"LIGHT ON · REPAIRS QUEUED",repo:"nexport-ios · ironvault-backup"},
+    shoals:{mono:"WS",name:"Whisper Shoals",role:"The sound waters — where the listening craft work, close to the surface where whispers live.",terr:"Territory IV",status:"LISTENING",repo:"the sound line"},
+    whisperlift:{mono:"WL",name:"Whisper Lift",role:"The browser cutter — voice extraction, 3-D frequency terrain, stem export, all local in the browser.",terr:"Whisper Shoals",status:"AFLOAT",repo:"whisper-lift.html · commit due"},
+    whisperpro:{mono:"WP",name:"Whisper Lift Pro",role:"The deep engine — Demucs and SepFormer under the hood, voice and speaker separation for the hard recordings.",terr:"Whisper Shoals",status:"AFLOAT",repo:"whisperlift-pro · commit due"},
+    exchange:{mono:"EX",name:"Exchange Isle",role:"Fair trade waters — where work and worker meet under the Trust Score's 0–1000 colors.",terr:"Territory V",status:"SCALES BALANCED",repo:"the exchange line"},
+    liaison:{mono:"LP",name:"Liaison Pro",role:"The Freelance Exchange — dual opportunity feed, the 0–1000 Trust Score moat, ivory-and-gold colors flying.",terr:"Exchange Isle",status:"HOLDING STATION",repo:"design docs charted · repo due"},
+    claude:{mono:"CL",name:"Claude · the shipwright's mate",role:"The allied escort that sails with every build — reads the hulls, drafts the repairs, keeps the ledger honest.",terr:"Allied Convoy",status:"ALONGSIDE",repo:"api.anthropic.com"},
+    apple:{mono:"AP",name:"Apple · the harbormaster",role:"Keeper of the App Store harbor — certificates, profiles, TestFlight moorings, and the review lantern.",terr:"Allied Convoy",status:"HARBOR OPEN",repo:"App Store Connect"},
+    stripe:{mono:"ST",name:"Stripe · the purser",role:"Payments and products — the coin of the fleet, counted and kept.",terr:"Allied Convoy",status:"LEDGER OPEN",repo:"Stripe dashboard"},
+    codemagic:{mono:"CM",name:"Codemagic · the rigger",role:"The rigging loft — iOS builds hoisted, signed, and sent up the mast to TestFlight.",terr:"Allied Convoy",status:"LOFT OPEN",repo:"codemagic.io"}
+  };
+
+  /* ================================================================
+     MOORINGS — EDIT YOUR REAL URLS HERE.
+     live  = the landing page / running app a USER should reach
+             (Command Deck click, and "Board the live app" in the Forge)
+     code  = the drydock — repo or editor a BUILDER should reach
+             ("Open the drydock" in the Forge)
+     null  = not charted yet; the deck will say so honestly.
+     ================================================================ */
+  var MOORINGS = {
+    ironbeam:        {live:null, code:"https://github.com/tbiller3/ironbeam"},
+    nexport:         {live:null, code:"https://github.com/tbiller3/nexport"},
+    nexportios:      {live:null, code:"https://github.com/tbiller3/nexport-ios"},
+    ivbackup:        {live:null, code:"https://github.com/tbiller3/ironvault-backup"},
+    ironvaultdesktop:{live:null, code:"https://github.com/tbiller3/ironvault-desktop"},
+    postapp:         {live:null, code:"https://github.com/tbiller3?tab=repositories&q=postapp"},
+    masterbuilder:   {live:null, code:"https://github.com/tbiller3/master-builder-pipeline"},
+    appforge:        {live:"https://appfactory-73pl.onrender.com/", code:"https://github.com/tbiller3/appfactory"},
+    sona:            {live:null, code:"https://github.com/tbiller3/sona-masterbuilder"},
+    applaunch:       {live:null, code:"https://github.com/base44dev/auto-launch-ship"},
+    zenkits:         {live:null, code:"https://github.com/tbiller3/zenkits"},
+    ironscan:        {live:null, code:null},
+    whisperlift:     {live:null, code:null},
+    whisperpro:      {live:null, code:null},
+    liaison:         {live:null, code:null},
+    ironcoast:       {live:"https://github.com/tbiller3", code:"https://github.com/tbiller3"},
+    foundry:         {live:null, code:"https://github.com/tbiller3"},
+    approaches:      {live:null, code:null},
+    rocks:           {live:null, code:"https://github.com/tbiller3/nexport-ios/actions"},
+    shoals:          {live:null, code:null},
+    exchange:        {live:null, code:null},
+    claude:          {live:"https://claude.ai", code:"https://docs.claude.com"},
+    apple:           {live:"https://appstoreconnect.apple.com", code:"https://developer.apple.com"},
+    stripe:          {live:"https://dashboard.stripe.com", code:"https://docs.stripe.com"},
+    codemagic:       {live:"https://codemagic.io", code:"https://docs.codemagic.io"}
+  };
+
+  /* ---------- the Hundred Sail registry ---------- */
+  var KNOWN = [
+    ["ironbeam-website","the flagship's shore office"],
+    ["ironbeam-source","hull plans, archived"],
+    ["ironbeam-golden-vortex","an experimental rig"],
+    ["IRONBEAM premium assets","brass fittings and colors"],
+    ["ironvault-kb","the fleet's knowledge locker"],
+    ["ironvault-backup","the watch-bell, at the Rocks"],
+    ["nexport-ios","the iOS rigging, at the Rocks"],
+    ["App-Export-Tool5","AppLaunch's Replit mirror"],
+    ["Infrasound Analyzer","the low listener"],
+    ["Liaison (first of the name)","dispatches unread"],
+    ["IronForge","seven agents sleeping"],
+    ["IronKits","marketplace, honorably retired"],
+    ["IronEyes","the watcher, resting"],
+    ["IronEars","the listener, resting"],
+    ["Superagent","hands off the rigging"],
+    ["Whisper Lift","the browser cutter"],
+    ["Whisper Lift Pro","the deep engine"],
+    ["DailyFile","the day's dispatch case"],
+    ["MasterBuilder 52","an earlier shipwright's draft"],
+    ["zenkits-backend","the kits' engine room"],
+    ["sona_platform","SONA's first slipway"],
+    ["postapp-main","an earlier POSTAPP hull"],
+    ["postapp_github","another POSTAPP hull, to reconcile"],
+    ["The Keeper's Apprentice","a story that teaches code"],
+    ["IronEyes AI Companion","the watcher's voice"],
+    ["auto-launch-ship","fresh from Base44 drydock"]
+  ];
+
+  var sailGroup = document.getElementById('hundredSail');
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  /* deterministic scatter across open water bands */
+  function makeDots(){
+    var dots = [];
+    var bands = [
+      {y0:880, y1:1050, x0:470, x1:900, n:26},
+      {y0:1330, y1:1390, x0:120, x1:1000, n:22},
+      {y0:1500, y1:1535, x0:100, x1:1010, n:22},
+      {y0:600, y1:780, x0:40, x1:260, n:10},
+      {y0:180, y1:560, x0:440, x1:600, n:10},
+      {y0:760, y1:1060, x0:960, x1:1050, n:10}
+    ];
+    var i = 0, seed = 7;
+    function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+    bands.forEach(function(b){
+      for(var k=0;k<b.n;k++){
+        dots.push({x: b.x0 + rnd()*(b.x1-b.x0), y: b.y0 + rnd()*(b.y1-b.y0), i: i++});
+      }
+    });
+    return dots;
+  }
+  var tip = document.getElementById('chartTip');
+  var tipNo = document.getElementById('tipNo'), tipName = document.getElementById('tipName'), tipRole = document.getElementById('tipRole');
+  var frame = document.querySelector('.wreck-frame');
+  makeDots().forEach(function(d){
+    var n = d.i;
+    var entry = KNOWN[n];
+    var name = entry ? entry[0] : 'Uncharted work';
+    var role = entry ? entry[1] : 'awaiting its name — hail Claude Code to register it';
+    var g = document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','sail-dot');
+    g.setAttribute('tabindex','0');
+    g.setAttribute('aria-label','No. '+String(n+1).padStart(3,'0')+' — '+name);
+    var hit = document.createElementNS(SVGNS,'circle');
+    hit.setAttribute('class','hit'); hit.setAttribute('cx',d.x); hit.setAttribute('cy',d.y); hit.setAttribute('r','11');
+    var core = document.createElementNS(SVGNS,'circle');
+    core.setAttribute('class','core'); core.setAttribute('cx',d.x); core.setAttribute('cy',d.y); core.setAttribute('r','2.4');
+    var t = document.createElementNS(SVGNS,'title');
+    t.textContent = 'No. '+String(n+1).padStart(3,'0')+' · '+name+' — '+role;
+    g.appendChild(hit); g.appendChild(core); g.appendChild(t);
+    function showTip(evt){
+      tipNo.textContent = 'No. '+String(n+1).padStart(3,'0');
+      tipName.textContent = name; tipRole.textContent = role;
+      var r = frame.getBoundingClientRect();
+      var x = (evt.touches?evt.touches[0].clientX:evt.clientX) - r.left;
+      var y = (evt.touches?evt.touches[0].clientY:evt.clientY) - r.top;
+      tip.style.left = Math.min(x+16, r.width-280)+'px';
+      tip.style.top = (y-14)+'px';
+      tip.classList.add('show');
+    }
+    g.addEventListener('mousemove', showTip);
+    g.addEventListener('mouseleave', function(){ tip.classList.remove('show'); });
+    g.addEventListener('focus', function(){
+      tipNo.textContent='No. '+String(n+1).padStart(3,'0'); tipName.textContent=name; tipRole.textContent=role;
+      tip.style.left='24px'; tip.style.top='24px'; tip.classList.add('show');
+    });
+    g.addEventListener('blur', function(){ tip.classList.remove('show'); });
+    sailGroup.appendChild(g);
+  });
+
+  /* ---------- theme ---------- */
+  var themeBtn = document.getElementById('themeToggle');
+  themeBtn.addEventListener('click', function(){
+    var light = root.getAttribute('data-theme') === 'light';
+    root.setAttribute('data-theme', light ? 'dark' : 'light');
+    themeBtn.setAttribute('aria-pressed', String(!light));
+    document.getElementById('themeLabel').textContent = light ? 'DAY WATCH' : 'NIGHT WATCH';
+    document.getElementById('themeGlyph').textContent = light ? '\u263E' : '\u2600';
+  });
+
+  /* ---------- views ---------- */
+  var views = {deck:document.getElementById('view-deck'),
+               wreck:document.getElementById('view-wreck'),
+               forge:document.getElementById('view-forge')};
+  var viewBtn = document.getElementById('viewToggle');
+  var viewLabel = document.getElementById('viewLabel');
+  var coords = document.getElementById('deckCoords');
+  var sub = document.getElementById('deckSub');
+  function show(name){
+    Object.keys(views).forEach(function(k){views[k].classList.toggle('is-active', k===name);});
+    coords.textContent = 'APPFACTORY \u00B7 ' + (name==='deck'?'COMMAND DECK':name==='wreck'?'WRECK CHART':'THE IRONFORGE');
+    viewLabel.textContent = name==='deck' ? 'WRECK CHART' : 'COMMAND DECK';
+    sub.textContent = name==='deck'
+      ? 'Every vessel in the fleet, charted on one deck \u2014 what\u2019s built, what\u2019s shipping, and what the tide brings next.'
+      : name==='wreck'
+      ? 'A map of doors \u2014 hover and the light finds it; click and the Forge takes it.'
+      : 'Below deck at the bench \u2014 the builder agent stands ready.';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  viewBtn.addEventListener('click', function(){
+    show(views.deck.classList.contains('is-active') ? 'wreck' : 'deck');
+  });
+  document.getElementById('forgeBack').addEventListener('click', function(){ show('wreck'); });
+
+  /* ---------- forge loading — direct wiring on every .hot ---------- */
+  var current = null;
+  var log = document.getElementById('benchLog');
+  function say(text, who, dim){
+    var d = document.createElement('div');
+    d.className = 'msg ' + (who==='you'?'msg--you':'msg--agent') + (dim?' msg--dim':'');
+    if(who!=='you'){var w=document.createElement('span');w.className='who';w.textContent='BUILDER AGENT';d.appendChild(w);}
+    d.appendChild(document.createTextNode(text));
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  var history = [];
+  function loadApp(id){
+    var a = FLEET[id]; if(!a) return;
+    current = a; history = [];
+    document.getElementById('fMono').textContent = a.mono;
+    document.getElementById('fName').textContent = a.name;
+    document.getElementById('fRole').textContent = a.role;
+    document.getElementById('fTerr').textContent = a.terr;
+    document.getElementById('fStatus').textContent = a.status;
+    document.getElementById('fRepo').textContent = a.repo;
+    var m = MOORINGS[id] || {};
+    var live = document.getElementById('fLive'), code = document.getElementById('fCode');
+    if(m.live){ live.href = m.live; live.hidden = false; } else { live.hidden = true; }
+    if(m.code){ code.href = m.code; code.hidden = false; } else { code.hidden = true; }
+    log.innerHTML = '';
+    say(a.name + ' is on the bench. Manifest loaded \u2014 territory, status, and mooring at your left. What shall we refine?', 'agent');
+    show('forge');
+  }
+  document.querySelectorAll('.hot').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      loadApp(el.getAttribute('data-app'));
+    });
+    el.addEventListener('keydown', function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); loadApp(el.getAttribute('data-app')); }
+    });
+  });
+
+  /* ---------- Command Deck tiles → the LIVE app (user's door) ---------- */
+  var DECK_MAP = {
+    "IRONBEAM":"ironbeam","NEXPORT":"nexport","POSTAPP":"postapp","ZenKits.AI":"zenkits",
+    "Iron Scan V2":"ironscan","IronVault Desktop":"ironvaultdesktop",
+    "APP MASTERBUILDER":"masterbuilder","AppForge":"appforge","SONA Masterbuilder":"sona",
+    "AppLaunch Flow":"applaunch","GitHub":"ironcoast","Base44":"applaunch",
+    "Render":"appforge","Codemagic":"codemagic","Stripe":"stripe"
+  };
+  document.querySelectorAll('#view-deck .node').forEach(function(node){
+    var nm = node.querySelector('.node__name'); if(!nm) return;
+    var id = DECK_MAP[nm.textContent.trim()]; if(!id) return;
+    node.style.cursor = 'pointer';
+    node.setAttribute('tabindex','0');
+    node.setAttribute('role','link');
+    function go(){
+      var m = MOORINGS[id];
+      if(m && m.live){ window.open(m.live, '_blank', 'noopener'); }
+      else {
+        var note = node.querySelector('.deck-note');
+        if(!note){
+          note = document.createElement('div');
+          note.className = 'status deck-note';
+          note.innerHTML = '<span class="status__dot" style="background:var(--steel-dim)"></span>NO LIVE MOORING CHARTED YET \u2014 see the Forge';
+          node.appendChild(note);
+          setTimeout(function(){ note.remove(); }, 3200);
+        }
+        loadApp(id);
+      }
+    }
+    node.addEventListener('click', go);
+    node.addEventListener('keydown', function(e){ if(e.key==='Enter'){ go(); } });
+  });
+
+  /* ---------- builder agent ---------- */
+  var input = document.getElementById('benchInput');
+  var send = document.getElementById('benchSend');
+  async function ask(text){
+    if(!text.trim() || !current) return;
+    say(text, 'you');
+    input.value=''; send.disabled=true;
+    var thinking = say('\u2026the agent leans over the plans\u2026', 'agent', true);
+    var context = 'You are the IronForge Builder Agent aboard the IRONVAULT AppFactory \u2014 a wise, concise shipwright. ' +
+      'Speak with light nautical flavor but stay genuinely useful and concrete. Keep replies under 150 words. ' +
+      'The vessel on the bench: ' + current.name + ' \u2014 ' + current.role +
+      ' Territory: ' + current.terr + '. Status: ' + current.status + '. Mooring: ' + current.repo + '. ' +
+      'Wider fleet context: 9 of 10 core apps secured on GitHub; Iron Scan V2 still needs export from Base44; ' +
+      'POSTAPP awaits an audit against a 95% automation target; nexport-ios has five failing signing workflows; ' +
+      'ironvault-backup review-status workflow failing.';
+    history.push({role:'user', content: (history.length===0 ? context + '\n\nUser: ' : '') + text});
+    try{
+      var res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, messages:history})
+      });
+      var data = await res.json();
+      var reply = (data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n');
+      if(!reply) throw new Error('empty');
+      history.push({role:'assistant', content:reply});
+      thinking.remove(); say(reply, 'agent');
+    }catch(err){
+      thinking.remove();
+      say(quartermaster(text), 'agent');
+      if(!ask._warned){
+        ask._warned = true;
+        say('(Ship\u2019s log, offline \u2014 the live agent\u2019s speaking-tube runs through the Claude harbor. Open this deck inside the Claude app, or wire an API key when the Forge goes operational, and the full voice comes alive.)', 'agent', true);
+      }
+    }
+    send.disabled=false; input.focus();
+  }
+  /* offline quartermaster — honest, contextual answers from the manifest itself */
+  function quartermaster(text){
+    var t = text.toLowerCase(), a = current;
+    if(t.indexOf('status read') !== -1 || t.indexOf('status') === 0){
+      return a.name + ' \u2014 status: ' + a.status + '. Moored at ' + a.repo + ', territory ' + a.terr + '. ' +
+        (a.status.indexOf('AGROUND') !== -1 ? 'Best next step: run the Base44 export \u2014 that single move refloats her.' :
+         a.status.indexOf('REPAIR') !== -1 || a.status.indexOf('SIGNING') !== -1 ? 'Best next step: refresh the signing secrets (certs, profile, p12) in the repo \u2014 one root cause, five symptoms.' :
+         a.status.indexOf('AUDIT') !== -1 ? 'Best next step: land the newest source, then run the audit against the 95% automation mark before fixing anything.' :
+         a.status.indexOf('VERIFY') !== -1 ? 'Best next step: diff the fresh Base44 export against the old Replit mirror and retire whichever is stale.' :
+         'Best next step: she\u2019s sound \u2014 log her in the ledger and sail on.');
+    }
+    if(t.indexOf('refinement plan') !== -1 || t.indexOf('improvements') !== -1){
+      return 'Three refinements for ' + a.name + ', ranked: 1) Truth first \u2014 confirm the newest source is the one in ' + a.repo + ' and retire duplicates. 2) One visible win \u2014 fix the loudest broken thing a user would hit in the first minute. 3) Ledger entry \u2014 record status, owner, and next step in ECOSYSTEM_RESCUE.md so she never drifts again. Each is a day or less at the bench.';
+    }
+    if(t.indexOf('story') !== -1 || t.indexOf('marketing') !== -1){
+      return a.name + ' \u2014 ' + a.role + ' She sails under the IRONVAULT flag in ' + a.terr + ', and her course is charted: ' + a.status.toLowerCase() + '. Every crossing she makes carries the same promise as the fleet itself \u2014 from set sail, onward.';
+    }
+    return 'The quartermaster consults the manifest: ' + a.name + ', ' + a.terr + ', currently ' + a.status + '. For deeper counsel than the log can give, the live agent needs the Claude harbor \u2014 but ask for a status read, a refinement plan, or her story, and the log answers in full.';
+  }
+  send.addEventListener('click', function(){ ask(input.value); });
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter') ask(input.value); });
+  document.querySelectorAll('.act').forEach(function(b){
+    b.addEventListener('click', function(){ ask(b.getAttribute('data-say')); });
+  });
+})();
+</script>
+
+</body>
+</html>
