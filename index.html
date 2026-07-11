@@ -410,10 +410,10 @@ footer{padding:70px 0 110px;text-align:center}
   <section class="ledger" aria-label="Fleet ledger">
     <div class="ledger__head">
       <div class="ledger__title">FLEET LEDGER</div>
-      <div class="ledger__tally"><strong>9 / 10</strong> vessels secured · <strong>1</strong> awaiting export · every door now opens</div>
+      <div class="ledger__tally"><strong>10 / 10</strong> vessels secured · <strong>+1</strong> commissioned · University Isle charted</div>
     </div>
-    <div class="gauge" role="img" aria-label="Nine of ten apps secured on GitHub"><div class="gauge__fill"></div></div>
-    <div class="ledger__foot">LAST SOUNDING · 2026-07-06 · ECOSYSTEM_RESCUE.md · all bearings true</div>
+    <div class="gauge" role="img" aria-label="All ten apps secured on GitHub"><div class="gauge__fill" style="width:100%"></div></div>
+    <div class="ledger__foot">LAST SOUNDING · 2026-07-11 · UNIVERSITY_ISLE.md · University Isle commissioned · all bearings true</div>
   </section>
 </div>
 
@@ -729,6 +729,32 @@ footer{padding:70px 0 110px;text-align:center}
           </g>
         </g>
 
+        <!-- UNIVERSITY ISLE -->
+        <g class="hot" data-app="university" tabindex="0" role="button" aria-label="Open University Isle in the Forge">
+          <ellipse class="halo" cx="400" cy="1038" rx="190" ry="135" fill="url(#haloGrad)"/>
+          <path d="M300 958 C 378 930, 478 947, 518 1004 C 553 1054, 528 1120, 458 1140
+                   C 390 1159, 308 1134, 280 1077 C 258 1032, 262 980, 300 958 Z"
+                fill="var(--gunmetal)" stroke="var(--brass-line)" stroke-width="1.2"/>
+          <!-- Mortarboard cap -->
+          <g transform="translate(400,998)">
+            <rect x="-22" y="2" width="44" height="5" fill="var(--brass)"/>
+            <path d="M-18 7 L-18 22 Q 0 30 18 22 L 18 7 Z" fill="var(--brass)" opacity=".7"/>
+            <path d="M-22 2 L 0 -12 L 22 2 Z" fill="var(--brass-bright)" opacity=".9"/>
+            <line x1="22" y1="2" x2="26" y2="22" stroke="var(--brass)" stroke-width="1.5"/>
+            <circle cx="26" cy="24" r="3" fill="var(--brass-bright)"/>
+          </g>
+          <text x="316" y="1062" font-family="Fraunces, serif" font-style="italic" font-size="22" fill="var(--ivory)" letter-spacing="2">University Isle</text>
+          <text x="318" y="1082" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--steel)" letter-spacing="2">29 AGENTS · FULL CURRICULUM</text>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wreck-ink)" letter-spacing="1">
+          <g class="hot" data-app="marketengine" tabindex="0" role="button" aria-label="Open MarketEngine University in the Forge" transform="translate(572,978)">
+            <circle class="halo" r="65" fill="url(#haloGrad)"/>
+            <path d="M-12 5 Q 0 12 12 5 L 9 0 L -9 0 Z" fill="var(--brass)"/>
+            <path d="M0 0 L 0 -15 L 9 -4 Z" fill="var(--brass-bright)"/>
+            <text x="18" y="4">MarketEngine · the atelier</text>
+          </g>
+        </g>
+
         <!-- COMPASS -->
         <g transform="translate(945,930)">
           <circle r="46" fill="none" stroke="var(--brass-line)" stroke-width="1"/>
@@ -836,7 +862,9 @@ footer{padding:70px 0 110px;text-align:center}
     claude:{mono:"CL",name:"Claude · the shipwright's mate",role:"The allied escort that sails with every build — reads the hulls, drafts the repairs, keeps the ledger honest.",terr:"Allied Convoy",status:"ALONGSIDE",repo:"api.anthropic.com"},
     apple:{mono:"AP",name:"Apple · the harbormaster",role:"Keeper of the App Store harbor — certificates, profiles, TestFlight moorings, and the review lantern.",terr:"Allied Convoy",status:"HARBOR OPEN",repo:"App Store Connect"},
     stripe:{mono:"ST",name:"Stripe · the purser",role:"Payments and products — the coin of the fleet, counted and kept.",terr:"Allied Convoy",status:"LEDGER OPEN",repo:"Stripe dashboard"},
-    codemagic:{mono:"CM",name:"Codemagic · the rigger",role:"The rigging loft — iOS builds hoisted, signed, and sent up the mast to TestFlight.",terr:"Allied Convoy",status:"LOFT OPEN",repo:"codemagic.io"}
+    codemagic:{mono:"CM",name:"Codemagic · the rigger",role:"The rigging loft — iOS builds hoisted, signed, and sent up the mast to TestFlight.",terr:"Allied Convoy",status:"LOFT OPEN",repo:"codemagic.io"},
+    university:{mono:"UY",name:"University Isle",role:"The school of the fleet — where marketing craft is taught and campaigns are built, 29 agents deep.",terr:"Territory VI",status:"COMMISSIONED",repo:"tbiller3/marketengine-university"},
+    marketengine:{mono:"ME",name:"MarketEngine University",role:"29-agent AI marketing orchestrator — the full curriculum from brand positioning to campaign execution to conversion.",terr:"University Isle",status:"COMMISSIONED",repo:"tbiller3/marketengine-university"}
   };
 
   /* ================================================================
@@ -872,7 +900,9 @@ footer{padding:70px 0 110px;text-align:center}
     claude:          {live:"https://claude.ai",                                                code:"https://docs.claude.com"},
     apple:           {live:"https://appstoreconnect.apple.com",                                code:"https://developer.apple.com"},
     stripe:          {live:"https://dashboard.stripe.com",                                     code:"https://docs.stripe.com"},
-    codemagic:       {live:"https://codemagic.io",                                             code:"https://docs.codemagic.io"}
+    codemagic:       {live:"https://codemagic.io",                                             code:"https://docs.codemagic.io"},
+    university:      {live:null,                                                                code:"https://github.com/tbiller3/marketengine-university"},
+    marketengine:    {live:null,                                                                code:"https://github.com/tbiller3/marketengine-university"}
   };
 
   /* ---------- the Hundred Sail registry ---------- */
