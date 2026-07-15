@@ -1119,11 +1119,14 @@ footer{padding:70px 0 110px;text-align:center}
       'ironvault-backup review-status workflow failing.';
     history.push({role:'user', content: (history.length===0 ? context + '\n\nUser: ' : '') + text});
     try{
-      var res = await fetch('https://api.anthropic.com/v1/messages', {
+      var res = await fetch('/api/messages', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, messages:history})
+        body: JSON.stringify({model:'claude-3-5-sonnet-20241022', max_tokens:1000, messages:history})
       });
       var data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Server error ' + res.status);
+      }
       var reply = (data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n');
       if(!reply) throw new Error('empty');
       history.push({role:'assistant', content:reply});
@@ -1133,7 +1136,7 @@ footer{padding:70px 0 110px;text-align:center}
       say(quartermaster(text), 'agent');
       if(!ask._warned){
         ask._warned = true;
-        say('(Ship\u2019s log, offline \u2014 the live agent\u2019s speaking-tube runs through the Claude harbor. Open this deck inside the Claude app, or wire an API key when the Forge goes operational, and the full voice comes alive.)', 'agent', true);
+        say('(Ship\u2019s log, offline \u2014 the live agent\u2019s speaking-tube runs through the local server. Run `npm start` with a valid ANTHROPIC_API_KEY set in your .env file to enable the live agent, or open this deck in a running environment.)', 'agent', true);
       }
     }
     send.disabled=false; input.focus();

@@ -1,0 +1,12 @@
+{
+  "name": "ironapps-deck",
+  "version": "1.0.0",
+  "description": "IronApps Ecosystem Command Deck",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
