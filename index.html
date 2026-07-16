@@ -384,7 +384,7 @@ footer{padding:70px 0 110px;text-align:center}
             <div class="status status--warn"><span class="status__dot"></span>AUDIT PENDING · source inbound</div></div>
           <div class="node"><div class="node__head"><div class="mono">ZK</div><div class="node__name">ZenKits.AI</div></div>
             <p class="node__role">The kits marketplace, resting until it's ready.</p>
-            <div class="status status--warn"><span class="status__dot"></span>API live · Stripe key pending</div></div>
+            <div class="status status--risk"><span class="status__dot"></span>BLOCKED · content not honest yet</div></div>
           <div class="node"><div class="node__head"><div class="mono">IS</div><div class="node__name">Iron Scan V2</div></div>
             <p class="node__role">The scanner — last vessel still on the Base44 reef.</p>
             <div class="status status--risk"><span class="status__dot"></span>EXPORT NEEDED · Base44 only</div></div>
@@ -865,7 +865,7 @@ footer{padding:70px 0 110px;text-align:center}
     approaches:{mono:"SA",name:"Store Approaches",role:"The submission channel — 175 marks between a finished hull and the open App Store sea.",terr:"Territory III",status:"CHANNEL OPEN",repo:"the audit will chart it"},
     postapp:{mono:"PA",name:"POSTAPP",role:"One URL in, ~175 App Store Connect fields out, six human touches. Bound for the great audit against the 95% automation mark.",terr:"Store Approaches",status:"AUDIT PENDING · SOURCE INBOUND",repo:"tbiller3/postapp-"},
     ironscan:{mono:"IS",name:"Iron Scan V2",role:"The scanner — the last vessel of the ten, aground on the Base44 Reef and awaiting its salvage export.",terr:"The Base44 Reef",status:"AGROUND · EXPORT NEEDED",repo:"— none yet · Base44 only"},
-    zenkits:{mono:"ZK",name:"ZenKits.AI",role:"The kits marketplace — API deployed to Railway 2026-07-16, health check live. Checkout is wired but waiting on the Stripe key to be set by hand.",terr:"The Fleet",status:"API LIVE · STRIPE KEY PENDING",repo:"tbiller3/zenkits"},
+    zenkits:{mono:"ZK",name:"ZenKits.AI",role:"The kits marketplace — held at anchor by design. The landing page promises 47 kits, fake testimonials, and instant delivery; the real backend has 8 hardcoded kits and no delivery mechanism at all. Blocked from release until the deliverable is honest.",terr:"The Fleet",status:"BLOCKED · NEEDS HONEST REBUILD",repo:"tbiller3/zenkits"},
     rocks:{mono:"LR",name:"The Lighthouse Rocks",role:"The repair anchorage. The light sweeps the wounded so none are forgotten — nexport-ios and ironvault-backup both repaired 2026-07-16.",terr:"Repair Anchorage",status:"LIGHT ON · ALL CLEAR",repo:"nexport-ios · ironvault-backup"},
     shoals:{mono:"WS",name:"Whisper Shoals",role:"The sound waters — where the listening craft work, close to the surface where whispers live.",terr:"Territory IV",status:"LISTENING",repo:"the sound line"},
     whisperlift:{mono:"WL",name:"Whisper Lift",role:"The browser cutter — voice extraction, 3-D frequency terrain, stem export, all local in the browser.",terr:"Whisper Shoals",status:"AFLOAT",repo:"whisper-lift.html · commit due"},
@@ -901,7 +901,7 @@ footer{padding:70px 0 110px;text-align:center}
     sona:            {live:null,                                                                code:"https://github.com/tbiller3/sona-masterbuilder"},
     applaunch:       {live:null,                                                                code:"https://github.com/base44dev/auto-launch-ship"},
     base44:          {live:"https://base44.com",                                                code:"https://base44.com"},
-    zenkits:         {live:"https://zenkits-api-production-16cb.up.railway.app",                 code:"https://github.com/tbiller3/zenkits"},
+    zenkits:         {live:null,                                                                code:"https://github.com/tbiller3/zenkits"},
     ironscan:        {live:null,                                                                code:null},
     whisperlift:     {live:null,                                                                code:null},
     whisperpro:      {live:null,                                                                code:null},
@@ -1105,10 +1105,12 @@ footer{padding:70px 0 110px;text-align:center}
       node.setAttribute('aria-disabled','true');
       node.style.cursor = 'not-allowed';
       var badge = document.createElement('div');
-      badge.className = 'status status--warn deck-comingsoon';
-      badge.innerHTML = '<span class="status__dot"></span>' +
-        (id === 'ironvaultdesktop' ? 'DESKTOP APP \u2014 launch locally, not a web link'
-                                    : 'COMING SOON \u2014 no live app yet');
+      var badgeText, badgeClass = 'status--warn';
+      if(id === 'ironvaultdesktop'){ badgeText = 'DESKTOP APP \u2014 launch locally, not a web link'; }
+      else if(id === 'zenkits'){ badgeText = 'BLOCKED \u2014 content not honest yet'; badgeClass = 'status--risk'; }
+      else { badgeText = 'COMING SOON \u2014 no live app yet'; }
+      badge.className = 'status ' + badgeClass + ' deck-comingsoon';
+      badge.innerHTML = '<span class="status__dot"></span>' + badgeText;
       node.appendChild(badge);
     }
     node.setAttribute('tabindex','0');
