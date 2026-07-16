@@ -140,6 +140,9 @@ header.masthead{padding:64px 0 40px;position:relative}
 .status--ok{color:var(--kelp)}.status--ok .status__dot{background:var(--kelp);box-shadow:0 0 6px rgba(63,142,126,.8)}
 .status--warn{color:var(--brass-bright)}.status--warn .status__dot{background:var(--brass-bright);box-shadow:0 0 6px rgba(217,164,65,.7)}
 .status--risk{color:var(--rust)}.status--risk .status__dot{background:var(--rust);box-shadow:0 0 6px rgba(196,105,79,.8)}
+.node--comingsoon{opacity:.6}
+.node--comingsoon:hover{transform:none;box-shadow:none;border-color:var(--line)}
+.node--comingsoon .deck-comingsoon{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .node--flag .status{justify-content:center}
 .ledger{margin:56px 0 20px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--gunmetal)}
 .ledger__head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
@@ -873,6 +876,7 @@ footer{padding:70px 0 110px;text-align:center}
     apple:{mono:"AP",name:"Apple · the harbormaster",role:"Keeper of the App Store harbor — certificates, profiles, TestFlight moorings, and the review lantern.",terr:"Allied Convoy",status:"HARBOR OPEN",repo:"App Store Connect"},
     stripe:{mono:"ST",name:"Stripe · the purser",role:"Payments and products — the coin of the fleet, counted and kept.",terr:"Allied Convoy",status:"LEDGER OPEN",repo:"Stripe dashboard"},
     codemagic:{mono:"CM",name:"Codemagic · the rigger",role:"The rigging loft — iOS builds hoisted, signed, and sent up the mast to TestFlight.",terr:"Allied Convoy",status:"LOFT OPEN",repo:"codemagic.io"},
+    base44:{mono:"B44",name:"Base44 · the drydock",role:"No-code build platform — where Base44-sourced hulls like Iron Scan V2 and AppLaunch Flow are laid before export.",terr:"Allied Convoy",status:"PLATFORM OPEN",repo:"base44.com"},
     university:{mono:"UY",name:"University Isle",role:"The school of the fleet — where marketing craft is taught and campaigns are built, 29 agents deep.",terr:"Territory VI",status:"COMMISSIONED",repo:"tbiller3/marketengine-university"},
     marketengine:{mono:"ME",name:"MarketEngine University",role:"29-agent AI marketing orchestrator — the full curriculum from brand positioning to campaign execution to conversion.",terr:"University Isle",status:"COMMISSIONED",repo:"tbiller3/marketengine-university"}
   };
@@ -896,6 +900,7 @@ footer{padding:70px 0 110px;text-align:center}
     appforge:        {live:"https://appfactory-73pl.onrender.com/",                            code:"https://github.com/tbiller3/appfactory"},
     sona:            {live:null,                                                                code:"https://github.com/tbiller3/sona-masterbuilder"},
     applaunch:       {live:null,                                                                code:"https://github.com/base44dev/auto-launch-ship"},
+    base44:          {live:"https://base44.com",                                                code:"https://base44.com"},
     zenkits:         {live:null,                                                                code:"https://github.com/tbiller3/zenkits"},
     ironscan:        {live:null,                                                                code:null},
     whisperlift:     {live:null,                                                                code:null},
@@ -1084,29 +1089,34 @@ footer{padding:70px 0 110px;text-align:center}
     "IRONBEAM":"ironbeam","NEXPORT":"nexport","POSTAPP":"postapp","ZenKits.AI":"zenkits",
     "Iron Scan V2":"ironscan","IronVault Desktop":"ironvaultdesktop",
     "APP MASTERBUILDER":"masterbuilder","AppForge":"appforge","SONA Masterbuilder":"sona",
-    "AppLaunch Flow":"applaunch","GitHub":"ironcoast","Base44":"applaunch",
+    "AppLaunch Flow":"applaunch","GitHub":"ironcoast","Base44":"base44",
     "Render":"appforge","Codemagic":"codemagic","Stripe":"stripe"
   };
   document.querySelectorAll('#view-deck .node').forEach(function(node){
     var nm = node.querySelector('.node__name'); if(!nm) return;
     var id = DECK_MAP[nm.textContent.trim()]; if(!id) return;
-    node.style.cursor = 'pointer';
+    var m = MOORINGS[id];
+    if(m && m.live){
+      node.style.cursor = 'pointer';
+    } else {
+      // No verified live URL exists for this app \u2014 mark it clearly rather
+      // than let the tile behave like a working "board the live app" link.
+      node.classList.add('node--comingsoon');
+      node.setAttribute('aria-disabled','true');
+      node.style.cursor = 'not-allowed';
+      var badge = document.createElement('div');
+      badge.className = 'status status--warn deck-comingsoon';
+      badge.innerHTML = '<span class="status__dot"></span>' +
+        (id === 'ironvaultdesktop' ? 'DESKTOP APP \u2014 launch locally, not a web link'
+                                    : 'COMING SOON \u2014 no live app yet');
+      node.appendChild(badge);
+    }
     node.setAttribute('tabindex','0');
     node.setAttribute('role','link');
     function go(){
       var m = MOORINGS[id];
       if(m && m.live){ window.open(m.live, '_blank', 'noopener'); }
-      else {
-        var note = node.querySelector('.deck-note');
-        if(!note){
-          note = document.createElement('div');
-          note.className = 'status deck-note';
-          note.innerHTML = '<span class="status__dot" style="background:var(--steel-dim)"></span>NO LIVE MOORING CHARTED YET \u2014 see the Forge';
-          node.appendChild(note);
-          setTimeout(function(){ note.remove(); }, 3200);
-        }
-        loadApp(id);
-      }
+      else { loadApp(id); }
     }
     node.addEventListener('click', go);
     node.addEventListener('keydown', function(e){ if(e.key==='Enter'){ go(); } });
